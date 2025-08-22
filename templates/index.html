@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic Tac Toe Multiplayer</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+    .board { 
+      display: grid; 
+      grid-template-columns: repeat(3, 100px); 
+      grid-gap: 5px; 
+      margin: 20px auto; 
+      justify-content: center; 
+    }
+    .cell { 
+      width: 100px; 
+      height: 100px; 
+      font-size: 2em; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      border: 2px solid #333; 
+      cursor: pointer; 
+    }
+    .cell.taken { cursor: not-allowed; background: #f2f2f2; }
+    .rooms { margin-top: 20px; }
+    .btn { padding: 8px 15px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+    .btn-create { background: #4CAF50; color: white; }
+    .btn-join { background: #2196F3; color: white; }
+    .btn-reset { background: #f44336; color: white; }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe Multiplayer</h1>
+
+  {% if message %}
+    <p style="color: red;">{{ message }}</p>
+  {% endif %}
+
+  {% if not code %}
+    <h2>Buat / Join Room</h2>
+    <form method="POST">
+      <input type="text" name="name" placeholder="Nama kamu" required>
+      <button type="submit" name="action" value="create" class="btn btn-create">Buat Room</button>
+    </form>
+    <form method="POST">
+      <input type="text" name="code" placeholder="Kode Room" required>
+      <input type="text" name="name" placeholder="Nama kamu" required>
+      <button type="submit" name="action" value="join" class="btn btn-join">Join Room</button>
+    </form>
+    <form method="POST">
+      <button type="submit" name="action" value="reset" class="btn btn-reset">Reset Semua Room</button>
+    </form>
+
+    <div class="rooms">
+      <h3>Daftar Room Aktif</h3>
+      {% if all_rooms %}
+        <ul>
+          {% for rcode, rdata in all_rooms.items() %}
+            <li>
+              <b>{{ rcode }}</b> ({{ rdata.players|length }}/2 pemain)
+              <a href="{{ url_for('room', code=rcode) }}">➡ Masuk</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>Belum ada room dibuat</p>
+      {% endif %}
+    </div>
+
+  {% else %}
+    <h2>Room: {{ code }}</h2>
+    <p>Pemain: {{ players }}</p>
+
+    <div class="board">
+      {% for i in range(9) %}
+        <form method="POST" style="margin:0;">
+          <input type="hidden" name="action" value="move">
+          <input type="hidden" name="move" value="{{ i }}">
+          <button type="submit" class="cell {% if board[i] != '' %}taken{% endif %}" {% if board[i] != '' or winner %}disabled{% endif %}>
+            {{ board[i] }}
+          </button>
+        </form>
+      {% endfor %}
+    </div>
+
+    {% if winner %}
+      <h3>
+        {% if winner == "Draw" %}
+          Hasil: Seri!
+        {% else %}
+          Pemenang: {{ winner }}
+        {% endif %}
+      </h3>
+      <form method="POST">
+        <button type="submit" name="action" value="reset_game" class="btn btn-join">Main Lagi 🔄</button>
+      </form>
+    {% else %}
+      <p>Giliran: {{ turn }}</p>
+    {% endif %}
+
+    <form method="POST">
+      <button type="submit" name="action" value="delete_room" class="btn btn-reset">Hapus Room ❌</button>
+    </form>
+    <p><a href="{{ url_for('index') }}">⬅ Kembali ke Halaman Utama</a></p>
+  {% endif %}
+</body>
+</html>
